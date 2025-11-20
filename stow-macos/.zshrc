@@ -52,18 +52,10 @@ export SSH_AUTH_SOCK=~/Library/Group\ Containers/2BUA8C4S2C.com.1password/t/agen
 #------------------------------------------------------------------------------
 # Aliases
 #------------------------------------------------------------------------------
-alias ll='ls -alh'
-alias la='ls -A'
-alias l='ls -CF'
-
-# Git aliases (supplement .gitconfig)
-alias gs='git status'
-alias gd='git diff'
-alias gl='git log --oneline --graph --all'
-
-# macOS-specific
-alias showfiles='defaults write com.apple.finder AppleShowAllFiles YES; killall Finder'
-alias hidefiles='defaults write com.apple.finder AppleShowAllFiles NO; killall Finder'
+# Load aliases from dedicated file
+if [[ -f ~/.aliases ]]; then
+	source ~/.aliases
+fi
 
 #------------------------------------------------------------------------------
 # Homebrew

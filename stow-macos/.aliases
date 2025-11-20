@@ -1,0 +1,27 @@
+# .aliases - Shell aliases for macOS
+# This file is sourced by .zshrc
+
+#------------------------------------------------------------------------------
+# File & Directory Navigation
+#------------------------------------------------------------------------------
+alias ll='ls -alh'
+alias la='ls -A'
+alias l='ls -CF'
+
+#------------------------------------------------------------------------------
+# Git Aliases
+#------------------------------------------------------------------------------
+alias gs='git status'
+alias gd='git diff'
+alias gl='git log --oneline --graph --all'
+
+#------------------------------------------------------------------------------
+# macOS Specific
+#------------------------------------------------------------------------------
+alias showfiles='defaults write com.apple.finder AppleShowAllFiles YES; killall Finder'
+alias hidefiles='defaults write com.apple.finder AppleShowAllFiles NO; killall Finder'
+
+#------------------------------------------------------------------------------
+# Custom Aliases
+#------------------------------------------------------------------------------
+# Add your custom aliases below this line
