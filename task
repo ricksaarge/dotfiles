@@ -250,7 +250,7 @@ install() {
 	case "$(_platform)" in
 		mac)
 			stow-macos
-			configure-macos
+			# configure-macos  # Commented out - run manually with: ./task configure-macos
 			;;
 		linux)
 			stow-ubuntu
