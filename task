@@ -1,0 +1,319 @@
+#!/bin/bash
+set -euo pipefail
+
+# Load bash-utility (must be sourced from its directory due to relative paths)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "${SCRIPT_DIR}/vendor/bash-utility" && source bash_utility.sh && cd "${SCRIPT_DIR}"
+
+#------------------------------------------------------------------------------
+# UTILITIES (private helpers)
+#------------------------------------------------------------------------------
+_info() {
+	echo "[INFO] $1"
+}
+
+_success() {
+	echo "[SUCCESS] $1"
+}
+
+_error() {
+	echo "[ERROR] $1" >&2
+	exit 1
+}
+
+_platform() {
+	os::detect_os
+}
+
+_has_cmd() {
+	check::command_exists "$1"
+}
+
+#------------------------------------------------------------------------------
+# PACKAGE MANAGERS
+#------------------------------------------------------------------------------
+install-homebrew() {
+	[[ "$(_platform)" != "mac" ]] && return
+	if _has_cmd brew; then
+		_info "Homebrew already installed"
+		return
+	fi
+	_info "Installing Homebrew..."
+	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+}
+
+install-stow() {
+	if _has_cmd stow; then
+		_info "GNU Stow already installed"
+		return
+	fi
+
+	_info "Installing GNU Stow..."
+	case "$(_platform)" in
+		mac)
+			brew install stow
+			;;
+		linux)
+			sudo apt install -y stow
+			;;
+		*)
+			_error "Unsupported platform: $(_platform)"
+			;;
+	esac
+}
+
+#------------------------------------------------------------------------------
+# PACKAGES
+#------------------------------------------------------------------------------
+install-brew-packages() {
+	[[ "$(_platform)" != "mac" ]] && return
+	if [[ ! -f Brewfile ]]; then
+		_error "Brewfile not found"
+	fi
+	_info "Installing Homebrew packages..."
+	brew bundle install
+}
+
+install-apt-packages() {
+	[[ "$(_platform)" != "linux" ]] && return
+	if [[ ! -f apt.txt ]]; then
+		_error "apt.txt not found"
+	fi
+	_info "Installing apt packages..."
+	xargs sudo apt install -y < apt.txt
+}
+
+install-starship() {
+	if _has_cmd starship; then
+		_info "Starship already installed"
+		return
+	fi
+
+	case "$(_platform)" in
+		mac)
+			_info "Starship will be installed via Brewfile"
+			;;
+		linux)
+			_info "Installing Starship..."
+			curl -sS https://starship.rs/install.sh | sh -s -- -y
+			;;
+		*)
+			_error "Unsupported platform: $(_platform)"
+			;;
+	esac
+}
+
+#------------------------------------------------------------------------------
+# DOTFILES
+#------------------------------------------------------------------------------
+stow-common() {
+	if [[ ! -d stow-common ]]; then
+		_error "stow-common/ directory not found"
+	fi
+	_info "Symlinking common dotfiles..."
+	stow --adopt -d . -t ~ stow-common
+}
+
+stow-macos() {
+	[[ "$(_platform)" != "mac" ]] && return
+	if [[ ! -d stow-macos ]]; then
+		_error "stow-macos/ directory not found"
+	fi
+	_info "Symlinking macOS dotfiles..."
+	stow -d . -t ~ stow-macos
+
+	# Create platform-specific git config symlink
+	if [[ -f "$HOME/.gitconfig.local" ]]; then
+		_info "Creating ~/.gitconfig.platform symlink..."
+		ln -sf "$HOME/.gitconfig.local" "$HOME/.gitconfig.platform"
+	fi
+}
+
+stow-ubuntu() {
+	[[ "$(_platform)" != "linux" ]] && return
+	if [[ ! -d stow-ubuntu ]]; then
+		_error "stow-ubuntu/ directory not found"
+	fi
+	_info "Symlinking Ubuntu dotfiles..."
+	stow -d . -t ~ stow-ubuntu
+
+	# Create empty platform-specific git config (can be customized)
+	_info "Creating empty ~/.gitconfig.platform..."
+	touch "$HOME/.gitconfig.platform"
+}
+
+#------------------------------------------------------------------------------
+# LANGUAGE SETUP
+#------------------------------------------------------------------------------
+setup-nvm() {
+	_info "Running nvm setup..."
+	if [[ -f "$HOME/bin/setup-nvm" ]]; then
+		"$HOME/bin/setup-nvm"
+	else
+		case "$(_platform)" in
+			mac)
+				_error "setup-nvm script not found. Ensure dotfiles are stowed: ./task stow-macos"
+				;;
+			linux)
+				_error "setup-nvm script not found. Ensure dotfiles are stowed: ./task stow-ubuntu"
+				;;
+			*)
+				_error "Unsupported platform: $(_platform)"
+				;;
+		esac
+	fi
+}
+
+setup-pyenv() {
+	_info "Running pyenv setup..."
+	if [[ -f "$HOME/bin/setup-pyenv" ]]; then
+		"$HOME/bin/setup-pyenv"
+	else
+		case "$(_platform)" in
+			mac)
+				_error "setup-pyenv script not found. Ensure dotfiles are stowed: ./task stow-macos"
+				;;
+			linux)
+				_error "setup-pyenv script not found. Ensure dotfiles are stowed: ./task stow-ubuntu"
+				;;
+			*)
+				_error "Unsupported platform: $(_platform)"
+				;;
+		esac
+	fi
+}
+
+#------------------------------------------------------------------------------
+# CONFIGURATION
+#------------------------------------------------------------------------------
+configure-git() {
+	if [[ ! -f .env ]]; then
+		_error ".env file not found. Copy .env.example and fill in your details."
+	fi
+
+	_info "Loading .env..."
+	# shellcheck disable=SC1091
+	set -a  # automatically export all variables
+	source .env
+	set +a
+
+	# Validate required variables
+	[[ -z "${GIT_USER_NAME:-}" ]] && _error "GIT_USER_NAME not set in .env"
+	[[ -z "${GIT_USER_EMAIL:-}" ]] && _error "GIT_USER_EMAIL not set in .env"
+
+	_info "Creating ~/.gitconfig.local with user settings..."
+	cat > "$HOME/.gitconfig.local" <<-EOF
+		[user]
+			name = ${GIT_USER_NAME}
+			email = ${GIT_USER_EMAIL}
+	EOF
+
+	_success "~/.gitconfig.local created"
+	_info "Main .gitconfig will import this file automatically"
+}
+
+configure-macos() {
+	[[ "$(_platform)" != "mac" ]] && return
+	if [[ ! -f "$HOME/bin/macos-defaults" ]]; then
+		_error "macos-defaults script not found. Ensure dotfiles are stowed: ./task stow-macos"
+	fi
+	_info "Configuring macOS defaults..."
+	"$HOME/bin/macos-defaults"
+}
+
+#------------------------------------------------------------------------------
+# WORKFLOWS
+#------------------------------------------------------------------------------
+install() {
+	_info "Starting dotfiles installation..."
+
+	# Package managers
+	install-homebrew
+	install-stow
+
+	# Packages
+	case "$(_platform)" in
+		mac)
+			install-brew-packages
+			;;
+		linux)
+			install-apt-packages
+			install-starship
+			;;
+	esac
+
+	# Configuration
+	configure-git
+
+	# Dotfiles
+	stow-common
+	case "$(_platform)" in
+		mac)
+			stow-macos
+			configure-macos
+			;;
+		linux)
+			stow-ubuntu
+			;;
+	esac
+
+	_info "Installation complete!"
+}
+
+update() {
+	_info "Updating packages..."
+	case "$(_platform)" in
+		mac)
+			brew update && brew upgrade
+			;;
+		linux)
+			sudo apt update && sudo apt upgrade -y
+			;;
+	esac
+	_info "Update complete!"
+}
+
+help() {
+	echo "Available commands:"
+	echo ""
+	echo "Package Management:"
+	echo "  install-homebrew        Install Homebrew package manager (macOS)"
+	echo "  install-stow            Install GNU Stow"
+	echo "  install-brew-packages   Install packages from Brewfile (macOS)"
+	echo "  install-apt-packages    Install packages from apt.txt (Ubuntu)"
+	echo "  install-starship        Install Starship prompt"
+	echo ""
+	echo "Dotfiles:"
+	echo "  stow-common             Symlink common dotfiles"
+	echo "  stow-macos              Symlink macOS dotfiles"
+	echo "  stow-ubuntu             Symlink Ubuntu dotfiles"
+	echo ""
+	echo "Language Setup:"
+	echo "  setup-nvm               Install Node.js LTS via nvm"
+	echo "  setup-pyenv             Install latest Python via pyenv"
+	echo ""
+	echo "Configuration:"
+	echo "  configure-git           Create ~/.gitconfig.local with user settings"
+	echo "  configure-macos         Apply macOS system defaults"
+	echo ""
+	echo "Ubuntu Additional Tools (~/bin/):"
+	echo "  install-starship        Install Starship from official installer"
+	echo "  install-1password-cli   Install 1Password CLI from official repo"
+	echo ""
+	echo "Workflows:"
+	echo "  install                 Complete installation (all steps)"
+	echo "  update                  Update all packages"
+	echo "  help                    Show this help message"
+}
+
+#------------------------------------------------------------------------------
+# DISPATCHER
+#------------------------------------------------------------------------------
+if declare -f "$1" >/dev/null 2>&1; then
+	"$1" "${@:2}"
+else
+	echo "Unknown command: $1"
+	echo ""
+	help
+	exit 1
+fi

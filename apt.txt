@@ -1,0 +1,142 @@
+# apt.txt - Ubuntu package management via apt
+# Install: sudo apt install -y $(grep -v '^#' apt.txt | xargs)
+# Note: Each package on separate line for version control clarity
+
+#------------------------------------------------------------------------------
+# Core System Tools
+#------------------------------------------------------------------------------
+
+# Git - Distributed Version Control System
+# Industry-standard distributed version control for tracking code changes,
+# collaborating with teams, and managing project history with branches
+git
+
+# GNU Stow - Symlink Manager
+# Elegant dotfiles manager that creates symlinks from a central repository
+# to home directory, making config management simple and version-controllable
+stow
+
+# cURL - Data Transfer Tool
+# Command-line tool for transferring data with URLs, supports HTTP, HTTPS,
+# FTP and many protocols for downloading files and testing APIs
+curl
+
+# wget - Network Downloader
+# Non-interactive network downloader for retrieving files via HTTP, HTTPS,
+# and FTP with support for recursive downloads and resume capability
+wget
+
+# rsync - File Synchronization
+# Fast incremental file transfer tool for synchronizing files and directories
+# between locations with compression, preserving permissions and timestamps
+rsync
+
+#------------------------------------------------------------------------------
+# Shell & Terminal
+#------------------------------------------------------------------------------
+
+# Zsh - Z Shell
+# Powerful interactive shell with advanced features like auto-completion,
+# spelling correction, and extensive customization via plugins and themes
+zsh
+
+# tmux - Terminal Multiplexer
+# Terminal session manager enabling multiple windows, panes, and persistent
+# sessions that survive disconnections, essential for remote work
+tmux
+
+#------------------------------------------------------------------------------
+# Text Editors
+#------------------------------------------------------------------------------
+
+# Vim - Highly Configurable Text Editor
+# Modal text editor with powerful editing capabilities, extensible via
+# plugins, and ubiquitous on Unix systems for remote SSH editing
+vim
+
+#------------------------------------------------------------------------------
+# GNU Core Utilities
+#------------------------------------------------------------------------------
+# Note: Most GNU utilities are already default on Ubuntu/Debian
+# Only additional ones needed are listed here
+
+# GNU Findutils - File Search Utilities
+# GNU versions of find, xargs, and locate with extended features for searching
+# files and executing commands on search results (already default on Ubuntu)
+findutils
+
+#------------------------------------------------------------------------------
+# Build Tools
+#------------------------------------------------------------------------------
+
+# Build Essential - C/C++ Compilation Tools
+# Meta-package containing GCC compiler, make, libc-dev and other essential
+# tools for compiling software from source on Debian/Ubuntu systems
+build-essential
+
+#------------------------------------------------------------------------------
+# Development Tools
+#------------------------------------------------------------------------------
+
+# GitHub CLI - GitHub Command Line
+# Official GitHub command-line tool for managing PRs, issues, and repos
+# directly from terminal without switching to browser
+gh
+
+# jq - JSON Processor
+# Lightweight command-line JSON processor for parsing, filtering, and
+# transforming JSON data with powerful query syntax
+jq
+
+# tree - Directory Visualizer
+# Displays directory structure in tree format showing hierarchy with
+# color coding and filtering options for understanding file organization
+tree
+
+# bat - Enhanced Cat
+# Cat clone with syntax highlighting, Git integration, automatic paging,
+# and line numbers for better code file viewing experience
+bat
+
+# ripgrep - Fast Search Tool
+# Blazing fast search tool that recursively searches directories using
+# regex patterns while respecting gitignore rules by default
+ripgrep
+
+# fd-find - Fast Find Alternative
+# Simple, fast alternative to find with intuitive syntax, parallel execution,
+# and respects gitignore for faster code searching
+fd-find
+
+# fzf - Fuzzy Finder
+# Command-line fuzzy finder for files, command history, and any list input
+# with instant feedback and integration with shell and vim
+fzf
+
+# htop - Interactive Process Viewer
+# Interactive process viewer showing CPU, memory usage with color-coded
+# meters and easy process management via keyboard shortcuts
+htop
+
+# Meld - Visual Diff Tool
+# Visual diff and merge tool for comparing files and directories with
+# three-way merge support and syntax highlighting
+meld
+
+#------------------------------------------------------------------------------
+# Compression & Archives
+#------------------------------------------------------------------------------
+
+# p7zip - 7-Zip Archive Tool
+# High compression ratio file archiver supporting 7z, ZIP, GZIP, BZIP2,
+# and TAR formats with strong AES-256 encryption
+p7zip-full
+
+#------------------------------------------------------------------------------
+# Security & Privacy
+#------------------------------------------------------------------------------
+
+# 1Password CLI - Command-line Password Management
+# Command-line tool for accessing 1Password vaults, managing secrets,
+# and integrating password management into scripts and workflows
+# Note: Use ~/bin/install-1password-cli to install (requires adding official repo)

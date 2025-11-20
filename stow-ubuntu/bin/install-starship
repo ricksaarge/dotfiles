@@ -1,0 +1,31 @@
+#!/bin/bash
+# install-starship - Install Starship prompt (Ubuntu)
+# Starship is not available via apt, must install from official installer
+
+set -euo pipefail
+
+_info() { echo "[INFO] $1"; }
+_error() { echo "[ERROR] $1" >&2; exit 1; }
+_success() { echo "[SUCCESS] $1"; }
+
+# Check if already installed
+if command -v starship &> /dev/null; then
+	current_version=$(starship --version | awk '{print $2}')
+	_info "Starship $current_version already installed"
+	read -p "Update to latest version? (y/N) " -n 1 -r
+	echo
+	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+		exit 0
+	fi
+fi
+
+_info "Installing Starship from official installer..."
+curl -sS https://starship.rs/install.sh | sh -s -- -y
+
+# Verify installation
+if command -v starship &> /dev/null; then
+	version=$(starship --version | awk '{print $2}')
+	_success "Starship $version installed"
+else
+	_error "Starship installation failed"
+fi

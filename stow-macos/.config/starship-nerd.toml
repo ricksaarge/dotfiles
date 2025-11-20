@@ -1,0 +1,87 @@
+# Starship Nerd Font Configuration (macOS desktop)
+# Modern prompt with Nerd Font icons
+# Docs: https://starship.rs/config/
+
+format = """
+$username\
+$hostname\
+$directory\
+$git_branch\
+$git_status\
+$nodejs\
+$python\
+$rust\
+$golang\
+$docker_context\
+$line_break\
+$character"""
+
+[username]
+style_user = "blue bold"
+style_root = "red bold"
+format = "[$user]($style) "
+disabled = false
+show_always = true
+
+[hostname]
+ssh_only = false
+format = "[@$hostname](bold yellow) "
+disabled = false
+
+[directory]
+style = "cyan bold"
+truncation_length = 3
+truncate_to_repo = true
+format = "[$path]($style) "
+read_only = " 󰌾"
+
+[git_branch]
+symbol = " "
+style = "purple bold"
+format = "[$symbol$branch]($style) "
+
+[git_status]
+style = "red bold"
+format = "([$all_status$ahead_behind]($style))"
+conflicted = "🏳"
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+up_to_date = ""
+untracked = "?${count}"
+stashed = "$${count}"
+modified = "!${count}"
+staged = "+${count}"
+renamed = "»${count}"
+deleted = "✘${count}"
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+vimcmd_symbol = "[❮](bold green)"
+
+# Languages with Nerd Font icons
+[nodejs]
+symbol = " "
+style = "green"
+format = "[$symbol($version )]($style)"
+
+[python]
+symbol = " "
+style = "yellow"
+format = "[$symbol($version )]($style)"
+
+[rust]
+symbol = " "
+style = "red"
+format = "[$symbol($version )]($style)"
+
+[golang]
+symbol = " "
+style = "cyan"
+format = "[$symbol($version )]($style)"
+
+[docker_context]
+symbol = " "
+style = "blue"
+format = "[$symbol$context]($style) "

@@ -1,0 +1,40 @@
+#!/bin/bash
+# setup-nvm - Install and configure Node.js via nvm (Ubuntu)
+# Installs latest LTS version and sets as default
+
+set -euo pipefail
+
+_info() { echo "[INFO] $1"; }
+_error() { echo "[ERROR] $1" >&2; exit 1; }
+_success() { echo "[SUCCESS] $1"; }
+
+# Check if nvm is installed
+if [[ ! -d "$HOME/.nvm" ]]; then
+	_info "Installing nvm..."
+	curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+
+	# Source nvm for this script
+	export NVM_DIR="$HOME/.nvm"
+	[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+else
+	# Source nvm for this script
+	export NVM_DIR="$HOME/.nvm"
+	[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+fi
+
+_info "Fetching latest Node.js LTS version..."
+nvm install --lts
+
+_info "Setting LTS as default version..."
+nvm alias default lts/*
+
+_info "Using LTS version..."
+nvm use default
+
+# Verify installation
+node_version=$(node --version)
+npm_version=$(npm --version)
+
+_success "Node.js $node_version installed"
+_success "npm $npm_version installed"
+_info "Default version: $(nvm version default)"

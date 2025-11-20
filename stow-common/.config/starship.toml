@@ -1,0 +1,42 @@
+# Starship Prompt Configuration
+# Docs: https://starship.rs/config/
+# Universal config with ASCII fallbacks for SSH/minimal systems
+
+format = """
+$directory$git_branch$git_status$line_break$character"""
+
+[directory]
+style = "blue bold"
+truncation_length = 3
+truncate_to_repo = true
+format = "[$path]($style) "
+
+[git_branch]
+symbol = "git:"
+style = "bright-black"
+format = "[$symbol$branch]($style) "
+
+[git_status]
+style = "red"
+format = "([$all_status$ahead_behind]($style) )"
+
+[character]
+success_symbol = "[>](bold green)"
+error_symbol = "[>](bold red)"
+
+# Languages (ASCII symbols for universal compatibility)
+[nodejs]
+symbol = "node:"
+format = "[$symbol$version ]($style)"
+
+[python]
+symbol = "py:"
+format = "[$symbol$version ]($style)"
+
+[rust]
+symbol = "rust:"
+format = "[$symbol$version ]($style)"
+
+[golang]
+symbol = "go:"
+format = "[$symbol$version ]($style)"
