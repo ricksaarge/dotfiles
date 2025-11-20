@@ -45,6 +45,11 @@ brew "starship"
 # spelling correction, and extensive customization via plugins and themes
 brew "zsh"
 
+# Vim - Vi IMproved
+# Enhanced version of vi text editor with syntax highlighting, scripting,
+# and extensive plugin ecosystem for efficient text editing
+brew "vim"
+
 # tmux - Terminal Multiplexer
 # Terminal session manager enabling multiple windows, panes, and persistent
 # sessions that survive disconnections, essential for remote work
@@ -189,10 +194,15 @@ cask "iterm2"
 # in isolated environments with consistent behavior across systems
 cask "docker-desktop"
 
+# Claude - AI Desktop Application
+# Anthropic's Claude AI desktop application for conversational AI assistance,
+# research, writing, and general-purpose AI interactions
+cask "claude"
+
 # Claude Code - AI-Powered Development Environment
 # Anthropic's Claude AI integrated development environment for AI-assisted
 # coding with context-aware suggestions and natural language interactions
-cask "claude"
+cask "claude-code"
 
 # Gemini Code - Google AI Development Tool
 # Google's Gemini AI coding assistant providing intelligent code completions,
@@ -242,6 +252,11 @@ cask "discord"
 # with recording capabilities and virtual backgrounds
 cask "zoom"
 
+# WhatsApp - Messaging Application
+# Cross-platform messaging app for text, voice, and video calls with
+# end-to-end encryption and group chat capabilities
+cask "whatsapp"
+
 #------------------------------------------------------------------------------
 # Media Applications
 #------------------------------------------------------------------------------
@@ -263,7 +278,7 @@ cask "vlc"
 # ChatGPT - AI Assistant
 # Desktop application for OpenAI's ChatGPT providing AI-powered assistance
 # for writing, coding, research, and problem-solving tasks
-# cask "chatgpt"  # Not available in Homebrew, download from OpenAI website
+cask "chatgpt"
 
 #------------------------------------------------------------------------------
 # Cloud Storage & Sync
