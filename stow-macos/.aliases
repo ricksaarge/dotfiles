@@ -25,3 +25,11 @@ alias hidefiles='defaults write com.apple.finder AppleShowAllFiles NO; killall F
 # Custom Aliases
 #------------------------------------------------------------------------------
 # Add your custom aliases below this line
+
+#------------------------------------------------------------------------------
+# Fortune Aliases
+#------------------------------------------------------------------------------
+# Load fortune-specific aliases if they exist
+if [[ -f ~/.fortune-aliases ]]; then
+	source ~/.fortune-aliases
+fi

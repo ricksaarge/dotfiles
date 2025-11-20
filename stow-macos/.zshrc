@@ -113,5 +113,9 @@ eval "$(starship init zsh)"
 #------------------------------------------------------------------------------
 # Display a random fortune if installed
 if command -v fortune &> /dev/null; then
-	fortune
+	if alias fortune-everything &> /dev/null; then
+		fortune-everything
+	else
+		fortune
+	fi
 fi
