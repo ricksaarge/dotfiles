@@ -1,0 +1,57 @@
+#!/bin/bash
+#
+# rename-mac - Rename macOS computer name
+# Usage: rename-mac <new-name>
+#
+# Sets ComputerName, LocalHostName, and HostName on macOS
+# Requires sudo privileges
+#
+# Compatible with: macOS Tahoe and later
+
+set -e
+
+if [ $# -ne 1 ]; then
+	echo "Usage: rename-mac <new-name>"
+	echo "Example: rename-mac rick-macbook"
+	exit 1
+fi
+
+NEW_NAME="$1"
+
+# Validate name (alphanumeric and hyphens only)
+if ! [[ "$NEW_NAME" =~ ^[a-zA-Z0-9-]+$ ]]; then
+	echo "Error: Name must contain only letters, numbers, and hyphens"
+	exit 1
+fi
+
+echo "This will rename your Mac to: $NEW_NAME"
+echo "Current computer name: $(scutil --get ComputerName 2>/dev/null || echo 'not set')"
+echo "Current hostname: $(scutil --get HostName 2>/dev/null || echo 'not set')"
+echo "Current local hostname: $(scutil --get LocalHostName 2>/dev/null || echo 'not set')"
+echo ""
+read -p "Continue? (y/N) " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+	echo "Aborted"
+	exit 0
+fi
+
+echo "Setting computer name..."
+sudo scutil --set ComputerName "$NEW_NAME"
+
+echo "Setting hostname..."
+sudo scutil --set HostName "$NEW_NAME"
+
+echo "Setting local hostname..."
+sudo scutil --set LocalHostName "$NEW_NAME"
+
+echo "Flushing DNS cache..."
+sudo dscacheutil -flushcache
+
+echo ""
+echo "Done! Your Mac has been renamed to: $NEW_NAME"
+echo "New computer name: $(scutil --get ComputerName)"
+echo "New hostname: $(scutil --get HostName)"
+echo "New local hostname: $(scutil --get LocalHostName)"
+echo ""
+echo "You may need to restart for all changes to take effect."
