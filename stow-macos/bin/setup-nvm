@@ -1,6 +1,8 @@
 #!/bin/bash
 # setup-nvm - Install and configure Node.js via nvm
-# Installs latest LTS version and sets as default
+# Usage: setup-nvm [--latest]
+#   --latest: Install latest LTS version
+#   (default): Install pinned version 22.11.0
 
 set -euo pipefail
 
@@ -23,13 +25,25 @@ else
 	_error "nvm.sh not found"
 fi
 
-_info "Fetching latest Node.js LTS version..."
-nvm install --lts
+# Pinned Node.js version (used by default)
+PINNED_VERSION="22.11.0"
 
-_info "Setting LTS as default version..."
-nvm alias default lts/*
+# Determine version to install
+if [[ "${1:-}" == "--latest" ]]; then
+	_info "Installing latest Node.js LTS version..."
+	nvm install --lts
+	NODE_VERSION="lts/*"
+	_info "Setting latest LTS as default version..."
+	nvm alias default lts/*
+else
+	_info "Installing Node.js $PINNED_VERSION..."
+	nvm install "$PINNED_VERSION"
+	NODE_VERSION="$PINNED_VERSION"
+	_info "Setting Node.js $PINNED_VERSION as default version..."
+	nvm alias default "$PINNED_VERSION"
+fi
 
-_info "Using LTS version..."
+_info "Using default Node.js version..."
 nvm use default
 
 # Verify installation

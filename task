@@ -148,7 +148,7 @@ stow-ubuntu() {
 setup-nvm() {
 	_info "Running nvm setup..."
 	if [[ -f "$HOME/bin/setup-nvm" ]]; then
-		"$HOME/bin/setup-nvm"
+		"$HOME/bin/setup-nvm" "$@"
 	else
 		case "$(_platform)" in
 			mac)
@@ -167,7 +167,7 @@ setup-nvm() {
 setup-pyenv() {
 	_info "Running pyenv setup..."
 	if [[ -f "$HOME/bin/setup-pyenv" ]]; then
-		"$HOME/bin/setup-pyenv"
+		"$HOME/bin/setup-pyenv" "$@"
 	else
 		case "$(_platform)" in
 			mac)
@@ -257,6 +257,10 @@ install() {
 			;;
 	esac
 
+	# Language setup
+	setup-nvm
+	setup-pyenv
+
 	_info "Installation complete!"
 }
 
@@ -289,8 +293,8 @@ help() {
 	echo "  stow-ubuntu             Symlink Ubuntu dotfiles"
 	echo ""
 	echo "Language Setup:"
-	echo "  setup-nvm               Install Node.js LTS via nvm"
-	echo "  setup-pyenv             Install latest Python via pyenv"
+	echo "  setup-nvm [--latest]    Install Node.js via nvm (default: 22.11.0, --latest: LTS)"
+	echo "  setup-pyenv [--latest]  Install Python via pyenv (default: 3.13.0, --latest: newest)"
 	echo ""
 	echo "Configuration:"
 	echo "  configure-git           Create ~/.gitconfig.local with user settings"
