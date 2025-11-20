@@ -306,12 +306,29 @@ bash -x ./task install
 
 ## Development
 
-Following [AISD](https://github.com/ricksaarge/aisd) (AI-Structured Documentation):
-- Concise tables over prose
-- MUST/REQUIRED/FORBIDDEN keywords
-- No rationale (document WHAT, not WHY)
+### Tools & Formats
+
+This repository uses custom tools and formats:
+
+| Tool | Purpose | Repository |
+|------|---------|------------|
+| **AISD** | AI-Structured Documentation format | [ricksaarge/aisd](https://github.com/ricksaarge/aisd) |
+| **todo-md** | Task list format for TODO.md | [ricksaarge/todo-md](https://github.com/ricksaarge/todo-md) |
+| **fortunes** | Fortune quotes collection | [ricksaarge/fortunes](https://github.com/ricksaarge/fortunes) |
 
 See [AGENTS.md](AGENTS.md) for AI agent instructions.
+
+### Inspiration
+
+This dotfiles approach was inspired by these repositories:
+
+| Source | Complexity | Key Features |
+|--------|------------|--------------|
+| [nygaard.dev](https://nygaard.dev/blog/macos-dotfiles) | Low | GNU Stow + Brew Bundle simplicity |
+| [webpro/dotfiles](https://github.com/webpro/dotfiles/) | Medium | Balanced approach, good documentation |
+| [mathiasbynens/dotfiles](https://github.com/mathiasbynens/dotfiles) | High | Comprehensive macOS defaults reference |
+
+See [docs/research/inspiration.md](docs/research/inspiration.md) for full analysis.
 
 ## License
 
