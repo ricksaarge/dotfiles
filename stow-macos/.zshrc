@@ -115,3 +115,11 @@ fi
 # Use Nerd Font config on macOS
 export STARSHIP_CONFIG=~/.config/starship-nerd.toml
 eval "$(starship init zsh)"
+
+#------------------------------------------------------------------------------
+# Fortune - Random Quotes
+#------------------------------------------------------------------------------
+# Display a random fortune if installed
+if command -v fortune &> /dev/null; then
+	fortune
+fi
