@@ -1,5 +1,11 @@
 # Dotfiles
 
+[![macOS](https://img.shields.io/badge/macOS-Compatible-blue.svg)](https://www.apple.com/macos/)
+[![Ubuntu](https://img.shields.io/badge/Ubuntu-Compatible-orange.svg)](https://ubuntu.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![GNU Stow](https://img.shields.io/badge/GNU%20Stow-Managed-green.svg)](https://www.gnu.org/software/stow/)
+[![1Password](https://img.shields.io/badge/1Password-Integration-0094F5.svg)](https://1password.com/)
+
 Personal dotfiles managed with GNU Stow, featuring automated setup and 1Password integration.
 
 ## Quick Start
