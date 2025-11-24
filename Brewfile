@@ -184,10 +184,10 @@ cask "google-chrome"
 # and thousands of extensions for any programming language
 cask "visual-studio-code"
 
-# iTerm2 - Terminal Emulator
-# Feature-rich terminal replacement with split panes, search, profiles,
-# and extensive customization for power users
-cask "iterm2"
+# Termius - SSH Client & Terminal
+# Cross-platform SSH client with synchronized connections, SFTP, port forwarding,
+# and team sharing for managing remote servers across devices
+cask "termius"
 
 # Docker Desktop - Container Platform
 # Containerization platform for building, shipping, and running applications
