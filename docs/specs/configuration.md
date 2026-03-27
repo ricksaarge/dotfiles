@@ -127,39 +127,34 @@ fi
 
 ---
 
-## .gitconfig Generation
+## .gitconfig.local Generation
 
-### Template File
+### Purpose
 
-**Location**: `stow-common/.gitconfig.template`
-
-**Content**:
-
-```ini
-[user]
-    name = ${GIT_USER_NAME}
-    email = ${GIT_USER_EMAIL}
-[github]
-    user = ${GITHUB_USERNAME}
-[core]
-    editor = vim
-[init]
-    defaultBranch = main
-```
+Generate user-specific git config from .env variables.
 
 ### Generated File
 
-**Location**: `stow-common/.gitconfig` (gitignored)
+**Location**: `~/.gitconfig.local`
 
 ### Generation Function
 
 ```bash
-generate_gitconfig() {
-  info "Generating .gitconfig from template"
-  validate_env
-  envsubst < stow-common/.gitconfig.template > stow-common/.gitconfig
+configure-git() {
+  source .env
+  cat > "$HOME/.gitconfig.local" <<-EOF
+    [user]
+      name = ${GIT_USER_NAME}
+      email = ${GIT_USER_EMAIL}
+EOF
 }
 ```
+
+### Include Chain
+
+`~/.gitconfig` (stowed) includes:
+- `~/.gitconfig.local` (generated, user info)
+- `~/.gitconfig.platform` (stowed, 1Password signing on macOS)
 
 **MUST** run before stow commands.
 
@@ -172,16 +167,9 @@ generate_gitconfig() {
 ```gitignore
 # Environment
 .env
-.env.local
-.env.*.local
-
-# Generated configs
-stow-common/.gitconfig
 
 # Logs
 *.log
-install.log
-.dotfiles-install.log
 
 # User-specific
 .DS_Store
@@ -196,7 +184,8 @@ install.log
 | File | Purpose |
 |------|---------|
 | .env.example | Template |
-| .gitconfig.template | Git config template |
+| stow-common/.gitconfig | Base git config (no PII) |
+| stow-macos/.gitconfig.platform | 1Password signing config |
 | .gitignore | Ignore rules |
 
 ### Ignored Files
@@ -204,7 +193,7 @@ install.log
 | File | Reason |
 |------|--------|
 | .env | Contains PII |
-| .gitconfig | Generated with PII |
+| ~/.gitconfig.local | Generated with PII |
 | *.log | Runtime data |
 
 ---
@@ -379,6 +368,5 @@ git config user.name
 
 ## Related
 
-- [install-script.md](install-script.md) - .env loading and validation
+- [task-file.md](task-file.md) - .env loading and validation
 - [stow-packages.md](stow-packages.md) - .gitconfig symlinking
-- [../requirements/index.md](../requirements/index.md) - PII requirements

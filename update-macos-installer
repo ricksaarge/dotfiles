@@ -1,0 +1,592 @@
+#!/bin/bash
+#
+# update-macos-installer - Update macOS installer USB drive
+#
+# Usage:
+#   update-macos-installer                          # Full workflow: scan, download, create
+#   update-macos-installer --dry-run                # Show what would happen without changes
+#   update-macos-installer scan                     # List drives and installers
+#   update-macos-installer download [VERSION]       # Download installer (latest if no version)
+#   update-macos-installer create DISK [INSTALLER]  # Create bootable USB
+#
+# Examples:
+#   update-macos-installer scan
+#   update-macos-installer download
+#   update-macos-installer download 15.2
+#   update-macos-installer create /dev/disk4
+#   update-macos-installer create /dev/disk4 "/Applications/Install macOS Sequoia.app"
+#   update-macos-installer create /dev/disk4 --latest
+
+set -e
+
+MIN_USB_SIZE_GB=16
+
+info() { echo "[INFO] $1"; }
+error() { echo "[ERROR] $1" >&2; exit 1; }
+warn() { echo "[WARN] $1" >&2; }
+
+#------------------------------------------------------------------------------
+# Installer Functions
+#------------------------------------------------------------------------------
+get_latest_version() {
+	softwareupdate --list-full-installers 2>/dev/null | \
+		grep -E "Version:" | head -1 | sed -E 's/.*Version: ([0-9.]+).*/\1/'
+}
+
+get_installed_installers() {
+	find /Applications -maxdepth 1 -name "Install macOS*.app" -type d 2>/dev/null | sort -r
+}
+
+get_newest_installer() {
+	get_installed_installers | head -1
+}
+
+download_installer() {
+	local version="$1"
+	info "Downloading macOS $version installer..."
+	softwareupdate --fetch-full-installer --full-installer-version "$version"
+}
+
+#------------------------------------------------------------------------------
+# USB Functions
+#------------------------------------------------------------------------------
+find_external_disks() {
+	diskutil list external physical 2>/dev/null | grep -E "^/dev/disk" | awk '{print $1}'
+}
+
+is_external_disk() {
+	local disk="$1"
+	[[ -z "$disk" ]] && return 1
+	[[ ! "$disk" =~ ^/dev/disk[0-9]+$ ]] && return 1
+	diskutil info "$disk" 2>/dev/null | grep -q "Device Location:.*External"
+}
+
+validate_target_disk() {
+	local disk="$1"
+
+	if [[ -z "$disk" ]]; then
+		error "No target disk specified"
+	fi
+
+	if [[ ! "$disk" =~ ^/dev/disk[0-9]+$ ]]; then
+		error "Invalid disk identifier: $disk (must be /dev/diskN)"
+	fi
+
+	if ! is_external_disk "$disk"; then
+		error "Disk $disk is not an external disk - aborting for safety"
+	fi
+
+	if [[ "$disk" == "/dev/disk0" ]]; then
+		error "Cannot target disk0 (system disk) - aborting"
+	fi
+
+	# Verify disk exists
+	if ! diskutil info "$disk" &>/dev/null; then
+		error "Disk $disk does not exist"
+	fi
+}
+
+get_disk_size_gb() {
+	local disk="$1"
+	local bytes
+	bytes=$(diskutil info "$disk" | grep "Disk Size" | awk -F'[()]' '{print $2}' | awk '{print $1}')
+	echo $((bytes / 1000000000))
+}
+
+get_disk_name() {
+	local disk="$1"
+	diskutil info "$disk" | grep "Media Name" | sed 's/.*Media Name:[[:space:]]*//'
+}
+
+get_disk_partitions() {
+	local disk="$1"
+	diskutil list "$disk" 2>/dev/null | grep -oE "disk[0-9]+s[0-9]+" | sort -u
+}
+
+get_mount_point() {
+	local partition="$1"
+	diskutil info "/dev/$partition" 2>/dev/null | grep "Mount Point:" | sed 's/.*Mount Point:[[:space:]]*//'
+}
+
+has_macos_installer() {
+	local disk="$1"
+	local partitions mount_point
+
+	partitions=$(get_disk_partitions "$disk")
+	while IFS= read -r part; do
+		[[ -z "$part" ]] && continue
+		mount_point=$(get_mount_point "$part")
+		[[ -z "$mount_point" ]] && continue
+		[[ "$mount_point" == "Not applicable"* ]] && continue
+
+		if [[ -f "$mount_point/.IAPhysicalMedia" ]] || \
+		   [[ -d "$mount_point/Install macOS"*".app" ]] || \
+		   [[ -f "$mount_point/BaseSystem.dmg" ]]; then
+			return 0
+		fi
+	done <<< "$partitions"
+	return 1
+}
+
+get_usb_macos_version() {
+	local disk="$1"
+	local partitions mount_point
+
+	partitions=$(get_disk_partitions "$disk")
+	while IFS= read -r part; do
+		[[ -z "$part" ]] && continue
+		mount_point=$(get_mount_point "$part")
+		[[ -z "$mount_point" ]] && continue
+		[[ "$mount_point" == "Not applicable"* ]] && continue
+
+		for app in "$mount_point"/Install\ macOS*.app; do
+			if [[ -d "$app" ]]; then
+				local plist="$app/Contents/Info.plist"
+				if [[ -f "$plist" ]]; then
+					local ver
+					ver=$(/usr/libexec/PlistBuddy -c "Print :DTSDKBuild" "$plist" 2>/dev/null)
+					if [[ -n "$ver" ]]; then
+						local name
+						name=$(basename "$app" .app | sed 's/Install macOS //')
+						echo "macOS $name ($ver)"
+						return
+					fi
+				fi
+			fi
+		done
+	done <<< "$partitions"
+	echo "unknown"
+}
+
+find_installer_disk() {
+	local found=""
+	while IFS= read -r disk; do
+		[[ -z "$disk" ]] && continue
+		local size_gb
+		size_gb=$(get_disk_size_gb "$disk")
+		[[ $size_gb -lt $MIN_USB_SIZE_GB ]] && continue
+
+		if has_macos_installer "$disk"; then
+			if [[ -n "$found" ]]; then
+				error "Multiple installer disks found. Specify one: $found, $disk"
+			fi
+			found="$disk"
+		fi
+	done < <(find_external_disks)
+	echo "$found"
+}
+
+#------------------------------------------------------------------------------
+# Commands
+#------------------------------------------------------------------------------
+cmd_scan() {
+	echo ""
+	echo "=== External USB Drives ==="
+	echo ""
+
+	local found_any=false
+	while IFS= read -r disk; do
+		[[ -z "$disk" ]] && continue
+		found_any=true
+		local size_gb name
+		size_gb=$(get_disk_size_gb "$disk")
+		name=$(get_disk_name "$disk")
+
+		if [[ $size_gb -lt $MIN_USB_SIZE_GB ]]; then
+			echo "  $disk - $name (${size_gb}GB) - Too small (min ${MIN_USB_SIZE_GB}GB)"
+			continue
+		fi
+
+		if has_macos_installer "$disk"; then
+			local current_ver
+			current_ver=$(get_usb_macos_version "$disk")
+			echo "  $disk - $name (${size_gb}GB)"
+			echo "           Installer: $current_ver"
+		else
+			echo "  $disk - $name (${size_gb}GB) - No installer"
+		fi
+	done < <(find_external_disks)
+
+	if [[ "$found_any" == false ]]; then
+		echo "  No external USB drives found"
+	fi
+
+	echo ""
+	echo "=== Available macOS Installers ==="
+	echo ""
+
+	local installers
+	installers=$(get_installed_installers)
+	if [[ -z "$installers" ]]; then
+		echo "  No installers in /Applications"
+	else
+		while IFS= read -r app; do
+			echo "  $(basename "$app")"
+			echo "    $app"
+		done <<< "$installers"
+	fi
+
+	echo ""
+	echo "=== Latest Available from Apple ==="
+	echo ""
+	local latest
+	latest=$(get_latest_version)
+	if [[ -n "$latest" ]]; then
+		echo "  macOS $latest"
+	else
+		echo "  Could not fetch (check network)"
+	fi
+	echo ""
+}
+
+cmd_download() {
+	local version="${1:-}"
+
+	if [[ -z "$version" ]]; then
+		info "Fetching latest available version..."
+		version=$(get_latest_version)
+		if [[ -z "$version" ]]; then
+			error "Could not determine latest version"
+		fi
+	fi
+
+	info "Downloading macOS $version..."
+	download_installer "$version"
+	info "Download complete"
+}
+
+cmd_create() {
+	local disk="$1"
+	local installer="$2"
+	local dry_run="${3:-false}"
+
+	# Validate disk argument
+	if [[ -z "$disk" ]]; then
+		# Try to auto-detect single installer disk
+		disk=$(find_installer_disk)
+		if [[ -z "$disk" ]]; then
+			error "No disk specified and no installer disk found. Run: $0 scan"
+		fi
+		info "Auto-detected installer disk: $disk"
+	fi
+
+	validate_target_disk "$disk"
+
+	# Handle installer argument
+	if [[ "$installer" == "--latest" ]]; then
+		if [[ "$dry_run" == true ]]; then
+			info "[DRY-RUN] Would download latest macOS installer"
+			local version
+			version=$(get_latest_version)
+			[[ -z "$version" ]] && error "Could not determine latest version"
+			info "[DRY-RUN] Latest version: $version"
+			installer="[Would download macOS $version]"
+		else
+			info "Downloading latest macOS installer..."
+			local version
+			version=$(get_latest_version)
+			[[ -z "$version" ]] && error "Could not determine latest version"
+			download_installer "$version"
+			installer=$(get_newest_installer)
+			[[ -z "$installer" ]] && error "Download succeeded but installer not found"
+		fi
+	elif [[ -z "$installer" ]]; then
+		installer=$(get_newest_installer)
+		if [[ -z "$installer" ]]; then
+			error "No installer specified and none found in /Applications"
+		fi
+		info "Using installer: $installer"
+	fi
+
+	# Validate installer exists (skip for dry-run with --latest)
+	if [[ "$dry_run" != true ]] || [[ "$installer" != "["* ]]; then
+		if [[ ! -d "$installer" ]]; then
+			error "Installer not found: $installer"
+		fi
+
+		local createinstallmedia="$installer/Contents/Resources/createinstallmedia"
+		if [[ ! -x "$createinstallmedia" ]]; then
+			error "createinstallmedia not found in: $installer"
+		fi
+	fi
+
+	# Final safety checks
+	validate_target_disk "$disk"
+
+	local target_name target_size
+	target_name=$(get_disk_name "$disk")
+	target_size=$(get_disk_size_gb "$disk")
+
+	# Check if disk has existing installer
+	local current_ver=""
+	if has_macos_installer "$disk"; then
+		current_ver=$(get_usb_macos_version "$disk")
+	fi
+
+	echo ""
+	if [[ "$dry_run" == true ]]; then
+		echo "=== DRY-RUN: No changes will be made ==="
+	fi
+	echo ""
+	info "Bootable installer operation"
+	echo ""
+	echo "  Target disk:    $disk"
+	echo "  Disk name:      $target_name"
+	echo "  Disk size:      ${target_size}GB"
+	if [[ -n "$current_ver" ]]; then
+		echo "  Current:        $current_ver"
+	fi
+	echo ""
+	if [[ "$installer" == "["* ]]; then
+		echo "  Installer:      $installer"
+	else
+		echo "  Installer:      $(basename "$installer")"
+		echo "  Installer path: $installer"
+	fi
+	echo ""
+
+	if [[ "$dry_run" == true ]]; then
+		echo "  Actions that would be performed:"
+		echo "    1. Erase disk $disk (format: JHFS+, scheme: GPT)"
+		echo "    2. Create volume 'macOS_Installer_Temp'"
+		echo "    3. Run createinstallmedia to copy installer"
+		echo ""
+		info "[DRY-RUN] Complete - no changes made"
+		return 0
+	fi
+
+	# Erase and format disk
+	info "Erasing disk $disk..."
+	sudo diskutil eraseDisk JHFS+ "macOS_Installer_Temp" GPT "$disk"
+
+	local volume_path="/Volumes/macOS_Installer_Temp"
+	if [[ ! -d "$volume_path" ]]; then
+		error "Failed to create volume at $volume_path"
+	fi
+
+	# Verify volume belongs to target disk
+	local volume_disk
+	volume_disk=$(diskutil info "$volume_path" 2>/dev/null | grep "Part of Whole:" | awk '{print $NF}')
+	if [[ "/dev/$volume_disk" != "$disk" ]]; then
+		error "Volume $volume_path is on /dev/$volume_disk, not $disk - aborting"
+	fi
+
+	info "Creating bootable installer..."
+	sudo "$createinstallmedia" --volume "$volume_path" --nointeraction
+
+	echo ""
+	info "Done! Bootable macOS installer created on $disk"
+}
+
+cmd_run() {
+	local dry_run="$1"
+
+	echo ""
+	if [[ "$dry_run" == true ]]; then
+		echo "=== DRY-RUN MODE: No changes will be made ==="
+	else
+		echo "=== macOS Installer USB Updater ==="
+	fi
+	echo ""
+
+	# Step 1: Find target disk
+	info "Step 1: Scanning for installer USB drives..."
+	echo ""
+
+	local target_disk=""
+	local found_any=false
+
+	while IFS= read -r disk; do
+		[[ -z "$disk" ]] && continue
+		found_any=true
+		local size_gb name
+		size_gb=$(get_disk_size_gb "$disk")
+		name=$(get_disk_name "$disk")
+
+		if [[ $size_gb -lt $MIN_USB_SIZE_GB ]]; then
+			echo "  $disk - $name (${size_gb}GB) - Too small"
+			continue
+		fi
+
+		if has_macos_installer "$disk"; then
+			local current_ver
+			current_ver=$(get_usb_macos_version "$disk")
+			echo "  $disk - $name (${size_gb}GB)"
+			echo "           Current: $current_ver"
+			if [[ -z "$target_disk" ]]; then
+				target_disk="$disk"
+			else
+				error "Multiple installer disks found. Use: $0 create DISK"
+			fi
+		else
+			echo "  $disk - $name (${size_gb}GB) - No installer"
+		fi
+	done < <(find_external_disks)
+
+	if [[ "$found_any" == false ]]; then
+		error "No external USB drives found"
+	fi
+
+	if [[ -z "$target_disk" ]]; then
+		error "No USB drive with macOS installer found. Use: $0 create DISK"
+	fi
+
+	echo ""
+	info "Target: $target_disk"
+
+	# Step 2: Get latest version
+	echo ""
+	info "Step 2: Checking latest macOS version..."
+	local latest
+	latest=$(get_latest_version)
+	if [[ -z "$latest" ]]; then
+		error "Could not fetch available macOS versions"
+	fi
+	echo "  Latest available: macOS $latest"
+
+	# Step 3: Download installer
+	echo ""
+	info "Step 3: Downloading macOS $latest installer..."
+	if [[ "$dry_run" == true ]]; then
+		echo "  [DRY-RUN] Would download macOS $latest"
+	else
+		download_installer "$latest"
+	fi
+
+	# Step 4: Create bootable USB
+	echo ""
+	info "Step 4: Creating bootable installer..."
+
+	local installer
+	if [[ "$dry_run" == true ]]; then
+		installer="[macOS $latest - would be downloaded]"
+	else
+		installer=$(get_newest_installer)
+		if [[ -z "$installer" ]]; then
+			error "Download completed but installer not found in /Applications"
+		fi
+	fi
+
+	validate_target_disk "$target_disk"
+
+	local target_name target_size current_ver
+	target_name=$(get_disk_name "$target_disk")
+	target_size=$(get_disk_size_gb "$target_disk")
+	current_ver=$(get_usb_macos_version "$target_disk")
+
+	echo ""
+	echo "  Target disk:    $target_disk ($target_name, ${target_size}GB)"
+	echo "  Current:        $current_ver"
+	if [[ "$installer" == "["* ]]; then
+		echo "  New installer:  $installer"
+	else
+		echo "  New installer:  $(basename "$installer")"
+	fi
+	echo ""
+
+	if [[ "$dry_run" == true ]]; then
+		echo "  Actions that would be performed:"
+		echo "    1. Erase disk $target_disk (format: JHFS+, scheme: GPT)"
+		echo "    2. Create volume 'macOS_Installer_Temp'"
+		echo "    3. Run createinstallmedia to copy installer"
+		echo ""
+		info "[DRY-RUN] Complete - no changes made"
+		return 0
+	fi
+
+	# Erase and format disk
+	info "Erasing disk $target_disk..."
+	sudo diskutil eraseDisk JHFS+ "macOS_Installer_Temp" GPT "$target_disk"
+
+	local volume_path="/Volumes/macOS_Installer_Temp"
+	if [[ ! -d "$volume_path" ]]; then
+		error "Failed to create volume at $volume_path"
+	fi
+
+	# Verify volume belongs to target disk
+	local volume_disk
+	volume_disk=$(diskutil info "$volume_path" 2>/dev/null | grep "Part of Whole:" | awk '{print $NF}')
+	if [[ "/dev/$volume_disk" != "$target_disk" ]]; then
+		error "Volume $volume_path is on /dev/$volume_disk, not $target_disk - aborting"
+	fi
+
+	local createinstallmedia="$installer/Contents/Resources/createinstallmedia"
+	info "Creating bootable installer..."
+	sudo "$createinstallmedia" --volume "$volume_path" --nointeraction
+
+	echo ""
+	info "Done! Bootable macOS $latest installer created on $target_disk"
+}
+
+cmd_help() {
+	cat <<'EOF'
+update-macos-installer - Create/update macOS installer USB drives
+
+USAGE:
+    update-macos-installer [command] [options]
+
+COMMANDS:
+    (default)                   Full workflow: scan, download latest, create
+    --dry-run                   Show full workflow without making changes
+    scan                        List external drives and available installers
+    download [VERSION]          Download macOS installer (latest if no version)
+    create DISK [INSTALLER]     Create bootable USB on specified disk
+    help                        Show this help
+
+EXAMPLES:
+    # Full workflow: find installer USB, download latest, create
+    update-macos-installer
+
+    # Preview full workflow without changes
+    update-macos-installer --dry-run
+
+    # Just see available drives and installers
+    update-macos-installer scan
+
+    # Download latest macOS installer only
+    update-macos-installer download
+
+    # Create installer on specific disk
+    update-macos-installer create /dev/disk4
+
+    # Create with specific installer app
+    update-macos-installer create /dev/disk4 "/Applications/Install macOS Sequoia.app"
+
+    # Download and create in one step
+    update-macos-installer create /dev/disk4 --latest
+
+SAFETY:
+    - Only targets external disks (verified via diskutil)
+    - Refuses to touch /dev/disk0 (system disk)
+    - Re-validates disk immediately before erase
+    - Verifies created volume belongs to target disk
+    - Use '--dry-run' to preview operations before executing
+EOF
+}
+
+#------------------------------------------------------------------------------
+# Main
+#------------------------------------------------------------------------------
+case "${1:-}" in
+	"")
+		cmd_run false
+		;;
+	--dry-run)
+		cmd_run true
+		;;
+	scan)
+		cmd_scan
+		;;
+	download)
+		cmd_download "$2"
+		;;
+	create)
+		cmd_create "$2" "$3" false
+		;;
+	help|--help|-h)
+		cmd_help
+		;;
+	*)
+		error "Unknown command: $1. Run '$0 help' for usage."
+		;;
+esac

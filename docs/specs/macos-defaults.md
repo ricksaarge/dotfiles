@@ -8,8 +8,8 @@
 
 | Property | Value |
 |----------|-------|
-| File | macos-defaults.sh |
-| Size target | 200-500 lines |
+| File | stow-macos/bin/macos-defaults |
+| Symlink | ~/bin/macos-defaults |
 | Language | Bash |
 | Shell flags | set -euo pipefail |
 
@@ -180,27 +180,16 @@ killall Dock Finder SystemUIServer
 ### From task file
 
 ```bash
-configure-macos() {
-  if [[ "$OS" == "macos" ]]; then
-    info "Configuring macOS defaults..."
-    ./macos-defaults.sh
-  fi
-}
+./task configure-macos
 ```
 
 ### Standalone
 
 ```bash
-./macos-defaults.sh
-# or
-./task configure-macos
+~/bin/macos-defaults
 ```
 
-**MUST** be executable:
-
-```bash
-chmod +x macos-defaults.sh
-```
+**Execution**: Script is stowed to `~/bin/` and executed from there.
 
 ---
 
@@ -357,6 +346,5 @@ killall Dock
 
 ## Related
 
-- [install-script.md](install-script.md) - Script execution
-- [../architecture/index.md](../architecture/index.md) - macOS settings decision
-- [../research/index.md](../research/index.md) - Settings management research
+- [task-file.md](task-file.md) - Script execution
+- [../research/settings.md](../research/settings.md) - Settings management research

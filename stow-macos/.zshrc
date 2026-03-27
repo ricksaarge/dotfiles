@@ -119,3 +119,4 @@ if command -v fortune &> /dev/null; then
 		fortune
 	fi
 fi
+export PATH="/opt/homebrew/opt/ruby/bin:$PATH"

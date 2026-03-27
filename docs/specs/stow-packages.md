@@ -32,10 +32,12 @@ Cross-platform dotfiles shared between macOS and Ubuntu.
 
 | File | Purpose |
 |------|---------|
-| .gitconfig.template | Git config template with ${VARS} |
-| .gitconfig | Generated config (gitignored) |
+| .gitconfig | Git config (includes .local and .platform) |
+| .gitignore_global | Global git ignore patterns |
 | .vimrc | Vim configuration |
-| .config/starship.toml | Terminal prompt config (shared) |
+| .tmux.conf | Tmux configuration |
+| .config/starship.toml | Terminal prompt config (ASCII) |
+| .ssh/config | SSH client configuration |
 
 ### MUST NOT Include
 
@@ -55,6 +57,14 @@ macOS-specific dotfiles.
 |------|---------|
 | .zshrc | Zsh config + Starship init |
 | .zprofile | Zsh login shell config |
+| .aliases | Shell aliases |
+| .gitconfig.platform | 1Password SSH signing config |
+| .config/starship-nerd.toml | Starship config (Nerd Fonts) |
+| .ssh/config | 1Password SSH agent config |
+| .ssh/allowed_signers | SSH signature verification |
+| bin/macos-defaults | macOS system preferences script |
+| bin/setup-nvm | Node.js version manager setup |
+| bin/setup-pyenv | Python version manager setup |
 
 ### .zshrc Requirements
 
@@ -80,6 +90,11 @@ Ubuntu-specific dotfiles.
 |------|---------|
 | .bashrc | Bash config + Starship init |
 | .bash_profile | Bash login shell config |
+| .ssh/config | SSH client configuration |
+| bin/setup-nvm | Node.js version manager setup |
+| bin/setup-pyenv | Python version manager setup |
+| bin/install-starship | Starship installer (not in apt) |
+| bin/install-1password-cli | 1Password CLI installer |
 
 ### .bashrc Requirements
 
@@ -227,52 +242,17 @@ git commit -m "Add tmux config"
 
 ### Static Files
 
-**Committed to git**:
-
-- .vimrc
-- .zshrc
-- .bashrc
-- .config/starship.toml
+**Committed to git**: All files in stow-*/ directories.
 
 ### Generated Files
 
-**NOT committed** (gitignored):
+**NOT committed** (generated at install time):
 
-- .gitconfig (generated from .gitconfig.template)
+| File | Generator | Purpose |
+|------|-----------|---------|
+| ~/.gitconfig.local | `./task configure-git` | User name/email from .env |
 
-**Generation** happens in `configure-git` task before stow.
-
----
-
-## .gitconfig Template
-
-### Template File
-
-**Location**: stow-common/.gitconfig.template
-
-**Content**:
-
-```ini
-[user]
-    name = ${GIT_USER_NAME}
-    email = ${GIT_USER_EMAIL}
-[github]
-    user = ${GITHUB_USERNAME}
-[core]
-    editor = vim
-```
-
-### Generated File
-
-**Location**: stow-common/.gitconfig (gitignored)
-
-**Generation**:
-
-```bash
-envsubst < stow-common/.gitconfig.template > stow-common/.gitconfig
-```
-
-**MUST** run before stow commands.
+See [configuration.md](configuration.md) for git config details.
 
 ---
 
@@ -352,7 +332,6 @@ stow -D -d . -t ~ "stow-$OS"
 
 ## Related
 
-- [install-script.md](install-script.md) - Stow execution
+- [task-file.md](task-file.md) - Stow execution
 - [configuration.md](configuration.md) - .gitconfig generation
 - [package-management.md](package-management.md) - Starship installation
-- [../architecture/index.md](../architecture/index.md) - Directory structure

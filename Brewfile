@@ -11,6 +11,11 @@
 # collaborating with teams, and managing project history with branches
 brew "git"
 
+# dockutil - Dock Management CLI
+# Command-line utility for managing macOS Dock items, adding, removing,
+# and reordering apps programmatically for automated Dock configuration
+brew "dockutil"
+
 # GNU Stow - Symlink Manager
 # Elegant dotfiles manager that creates symlinks from a central repository
 # to home directory, making config management simple and version-controllable
@@ -296,7 +301,7 @@ cask "dropbox"
 # ExpressVPN - VPN Service
 # Virtual private network service for encrypting internet connection,
 # protecting privacy, and accessing geo-restricted content
-cask "expressvpn"
+# cask "expressvpn"
 
 #------------------------------------------------------------------------------
 # Fonts

@@ -302,6 +302,5 @@ sudo apt upgrade
 
 ## Related
 
-- [install-script.md](install-script.md) - Installation orchestration
+- [task-file.md](task-file.md) - Installation orchestration
 - [stow-packages.md](stow-packages.md) - Configuration management
-- [../architecture/index.md](../architecture/index.md) - Architecture decisions
