@@ -429,6 +429,42 @@ defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebK
 defaults write com.apple.Safari SendDoNotTrackHTTPHeader -bool true 2>/dev/null || true
 
 ###############################################################################
+# Default Applications                                                        #
+###############################################################################
+
+# Set CotEditor as default for plain text and common developer file types
+# Uses defaults write (more reliable than duti on modern macOS)
+_set_default_app() {
+	local uti="$1"
+	local app="$2"
+	defaults write com.apple.LaunchServices/com.apple.launchservices.secure LSHandlers -array-add \
+		"{LSHandlerContentType=\"${uti}\";LSHandlerRoleAll=\"${app}\";}"
+}
+
+_coteditor="com.coteditor.CotEditor"
+
+# Plain text and source code
+_set_default_app "public.plain-text" "$_coteditor"
+_set_default_app "public.unix-executable" "$_coteditor"
+_set_default_app "public.shell-script" "$_coteditor"
+_set_default_app "public.python-script" "$_coteditor"
+_set_default_app "public.ruby-script" "$_coteditor"
+_set_default_app "public.c-source" "$_coteditor"
+_set_default_app "public.c-header" "$_coteditor"
+
+# Data formats
+_set_default_app "net.daringfireball.markdown" "$_coteditor"
+_set_default_app "public.json" "$_coteditor"
+_set_default_app "public.yaml" "$_coteditor"
+_set_default_app "public.xml" "$_coteditor"
+_set_default_app "public.comma-separated-values-text" "$_coteditor"
+_set_default_app "com.netscape.javascript-source" "$_coteditor"
+_set_default_app "com.apple.log" "$_coteditor"
+
+# Rebuild Launch Services database
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -kill -r -domain local -domain system -domain user 2>/dev/null || true
+
+###############################################################################
 # Kill affected applications                                                  #
 ###############################################################################
 
