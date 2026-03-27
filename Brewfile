@@ -21,6 +21,11 @@ brew "dockutil"
 # and updates of App Store apps via Brewfile and shell scripts
 brew "mas"
 
+# duti - Default Application Setter
+# Command-line utility for querying and setting default applications for
+# document types and URL schemes on macOS using UTIs
+brew "duti"
+
 # GNU Stow - Symlink Manager
 # Elegant dotfiles manager that creates symlinks from a central repository
 # to home directory, making config management simple and version-controllable

@@ -288,7 +288,12 @@ update() {
 	_info "Updating packages..."
 	case "$(_platform)" in
 		mac)
+			_info "Updating Homebrew formulae..."
 			brew update && brew upgrade
+			_info "Updating Homebrew casks..."
+			brew upgrade --cask
+			_info "Updating Mac App Store apps..."
+			mas upgrade
 			;;
 		linux)
 			sudo apt update && sudo apt upgrade -y
