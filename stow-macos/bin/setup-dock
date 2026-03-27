@@ -33,22 +33,15 @@ apps=(
 	# Development
 	"/Applications/Visual Studio Code.app"
 	"/System/Applications/Utilities/Terminal.app"
-	"/Applications/Docker.app"
-	"/Applications/Termius.app"
 	# Communication
 	"/System/Applications/Messages.app"
 	"/Applications/WhatsApp.app"
-	"/Applications/Discord.app"
 	"/Applications/Slack.app"
-	# Voice
-	"/Applications/Wispr Flow.app"
-	"/Applications/Speechify — Voice AI Assistant.app"
-	"/Applications/Plaud.app"
+	# Reading
+	"/System/Applications/News.app"
+	"$HOME/Applications/Chrome Apps.localized/Medium.app"
 	# Media
 	"/Applications/Spotify.app"
-	# Security
-	"/Applications/1Password.app"
-	"/Applications/ExpressVPN.app"
 )
 
 #------------------------------------------------------------------------------

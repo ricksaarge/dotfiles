@@ -16,6 +16,11 @@ brew "git"
 # and reordering apps programmatically for automated Dock configuration
 brew "dockutil"
 
+# mas - Mac App Store CLI
+# Command-line interface for the Mac App Store, enabling automated install
+# and updates of App Store apps via Brewfile and shell scripts
+brew "mas"
+
 # GNU Stow - Symlink Manager
 # Elegant dotfiles manager that creates symlinks from a central repository
 # to home directory, making config management simple and version-controllable
@@ -257,6 +262,11 @@ cask "discord"
 # with recording capabilities and virtual backgrounds
 cask "zoom"
 
+# Microsoft Teams - Team Communication & Video Conferencing
+# Enterprise collaboration platform for chat, meetings, and file sharing
+# with Office 365 integration for workplace communication
+cask "microsoft-teams"
+
 # WhatsApp - Messaging Application
 # Cross-platform messaging app for text, voice, and video calls with
 # end-to-end encryption and group chat capabilities
@@ -285,6 +295,16 @@ cask "vlc"
 # for writing, coding, research, and problem-solving tasks
 cask "chatgpt"
 
+# Wispr Flow - Voice Dictation
+# AI-powered voice dictation tool for hands-free typing with natural speech
+# recognition and context-aware text generation across applications
+cask "wispr-flow"
+
+# Plaud - AI Voice Recorder Companion
+# Desktop companion app for Plaud AI voice recorder hardware, providing
+# transcription management and recording synchronization
+cask "plaud"
+
 #------------------------------------------------------------------------------
 # Cloud Storage & Sync
 #------------------------------------------------------------------------------
@@ -301,6 +321,7 @@ cask "dropbox"
 # ExpressVPN - VPN Service
 # Virtual private network service for encrypting internet connection,
 # protecting privacy, and accessing geo-restricted content
+# Install manually: https://www.expressvpn.com/latest (cask installer is broken)
 # cask "expressvpn"
 
 #------------------------------------------------------------------------------
@@ -339,3 +360,21 @@ brew "fortune"
 # Window manager for organizing windows via keyboard shortcuts with snapping
 # to screen edges and corners for efficient screen space usage
 # cask "rectangle"
+
+#------------------------------------------------------------------------------
+# Mac App Store Applications (requires mas CLI and App Store sign-in)
+#------------------------------------------------------------------------------
+
+# Dark Noise - Ambient Sound Generator
+# Customizable ambient noise app with brown noise, rain, cafe sounds,
+# and mixing capabilities for focus and concentration
+mas "Dark Noise", id: 1465439395
+
+# CotEditor - Lightweight Text Editor
+# Native macOS plain-text editor with syntax highlighting, regex search,
+# and split view for quick file editing without IDE overhead
+mas "CotEditor", id: 1024640650
+
+# Speechify - Text-to-Speech Reader
+# Not available via mas, install manually from speechify.com
+# mas "Speechify", id: 1624912180

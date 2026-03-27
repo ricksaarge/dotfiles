@@ -56,6 +56,8 @@
 | install-stow | install | stow |
 | install-brew-packages | install | brew-packages |
 | stow-common | stow | common |
+| setup-dock | setup | dock |
+| setup-links | setup | links |
 | configure-macos | configure | macos |
 
 ---
@@ -91,6 +93,13 @@
 |------|----------|---------|
 | setup-nvm | Both | Install Node.js via nvm |
 | setup-pyenv | Both | Install Python via pyenv |
+
+### Setup
+
+| Task | Platform | Purpose |
+|------|----------|---------|
+| setup-dock | macOS | Configure Dock apps |
+| setup-links | macOS | Create home directory symlinks |
 
 ### Configuration
 
@@ -154,6 +163,8 @@ task-name() {
 | install-brew-packages | Installs all | Skips installed |
 | stow-common | Creates symlinks | Updates symlinks |
 | configure-git | Creates file | Overwrites (safe) |
+| setup-dock | Sets dock apps | Resets dock (safe) |
+| setup-links | Creates symlinks | Updates symlinks (safe) |
 | configure-macos | Applies settings | Overwrites (safe) |
 
 **All tasks MUST be safe to re-run.**
@@ -190,6 +201,8 @@ fi
 ./task stow-common
 ./task configure-git
 ./task configure-macos
+./task setup-dock
+./task setup-links
 ./task setup-nvm
 ./task setup-pyenv
 ```

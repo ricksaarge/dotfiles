@@ -48,8 +48,14 @@ dotfiles/
 │   ├── .ssh/
 │   │   ├── config          # 1Password SSH agent
 │   │   └── allowed_signers # SSH signature verification
-│   └── .config/
-│       └── starship-nerd.toml  # Starship (Nerd Fonts)
+│   ├── .config/
+│   │   └── starship-nerd.toml  # Starship (Nerd Fonts)
+│   └── bin/
+│       ├── macos-defaults  # macOS system preferences
+│       ├── setup-dock      # Dock app configuration
+│       ├── setup-links     # Home directory symlinks
+│       ├── setup-nvm       # Node.js version manager
+│       └── setup-pyenv     # Python version manager
 └── stow-ubuntu/            # Ubuntu-specific dotfiles
     ├── .bashrc
     └── .bash_profile
@@ -112,11 +118,16 @@ The `./task` script provides automated setup:
 ```bash
 ./task install              # Full setup (recommended)
 ./task install-homebrew     # Install Homebrew (macOS)
-./task install-packages     # Install from Brewfile/apt.txt
+./task install-brew-packages # Install from Brewfile/apt.txt
 ./task install-stow         # Install GNU Stow
 ./task configure-git        # Generate .gitconfig.local
-./task stow                 # Symlink dotfiles
-./task macos-defaults       # Apply macOS settings
+./task stow-common          # Symlink cross-platform dotfiles
+./task stow-macos           # Symlink macOS dotfiles
+./task configure-macos      # Apply macOS settings
+./task setup-dock           # Configure Dock apps
+./task setup-links          # Create home directory symlinks
+./task setup-nvm            # Install Node.js via nvm
+./task setup-pyenv          # Install Python via pyenv
 ./task help                 # Show all commands
 ```
 

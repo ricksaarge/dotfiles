@@ -22,24 +22,20 @@ Ruby DSL for Homebrew Bundle.
 ### Structure
 
 ```ruby
-# Taps
-tap "homebrew/cask"
-
 # CLI Tools
 brew "git"
 brew "stow"
 brew "vim"
 brew "starship"
-
-# Development Tools
-brew "python"
-brew "node"
-brew "docker"
+brew "mas"
 
 # GUI Applications
 cask "visual-studio-code"
-cask "iterm2"
-cask "docker"
+cask "google-chrome"
+cask "docker-desktop"
+
+# Mac App Store
+mas "Dark Noise", id: 1465439395
 ```
 
 ### Sections
@@ -49,6 +45,7 @@ cask "docker"
 | Taps | tap "name" | Add third-party repos |
 | CLI tools | brew "name" | Command-line packages |
 | GUI apps | cask "name" | macOS applications |
+| App Store | mas "name", id: N | Mac App Store apps (requires mas CLI) |
 
 ### Required Packages
 
@@ -58,6 +55,7 @@ cask "docker"
 | stow | brew | Symlink manager |
 | vim | brew | Text editor |
 | starship | brew | Terminal prompt |
+| mas | brew | Mac App Store CLI |
 
 **MUST** include starship BEFORE symlinking shell configs.
 
@@ -150,11 +148,58 @@ xargs sudo apt install -y < apt.txt
 
 | Package | Type | Purpose |
 |---------|------|---------|
+| google-chrome | cask | Web browser |
 | visual-studio-code | cask | Code editor |
-| iterm2 | cask | Terminal emulator |
-| docker | cask | Docker Desktop |
-| alfred | cask | Launcher |
-| rectangle | cask | Window manager |
+| termius | cask | SSH client |
+| docker-desktop | cask | Containerization |
+| claude | cask | AI assistant |
+| claude-code | cask | AI development |
+| chatgpt | cask | AI assistant |
+| obsidian | cask | Knowledge management |
+| 1password | cask | Password manager |
+| slack | cask | Team communication |
+| discord | cask | Community chat |
+| zoom | cask | Video conferencing |
+| microsoft-teams | cask | Team communication |
+| whatsapp | cask | Messaging |
+| spotify | cask | Music streaming |
+| vlc | cask | Media player |
+| dropbox | cask | Cloud storage |
+| wispr-flow | cask | Voice dictation |
+| plaud | cask | AI voice recorder |
+| expressvpn | manual | VPN service (cask installer broken, install from expressvpn.com) |
+| meld | cask | Visual diff tool |
+
+### Mac App Store Applications
+
+| Package | ID | Purpose |
+|---------|-----|---------|
+| Dark Noise | 1465439395 | Ambient sound generator |
+| CotEditor | 1024640650 | Lightweight text editor |
+| Speechify | 1624912180 | Text-to-speech reader (manual install) |
+
+---
+
+## Known Issues
+
+### Casks Requiring Interactive Install
+
+These casks use `.pkg` or custom installers that require `sudo`. They fail during `brew bundle install` in non-interactive contexts.
+
+| Cask | Issue | Workaround |
+|------|-------|------------|
+| microsoft-teams | `.pkg` installer | `brew install --cask microsoft-teams` |
+| wispr-flow | Needs sudo for permissions | `brew install --cask wispr-flow` |
+| plaud | Needs sudo for permissions | `brew install --cask plaud` |
+| expressvpn | Install helper broken via CLI | Install manually from expressvpn.com |
+
+### Mac App Store Limitations
+
+| App | Issue |
+|-----|-------|
+| Speechify | App Store ID `1624912180` not found via mas, install manually from speechify.com |
+
+**MUST** be signed into Mac App Store for `mas install` to work.
 
 ---
 

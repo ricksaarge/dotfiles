@@ -74,7 +74,7 @@ Follows [todo-md](https://github.com/ricksaarge/todo-md) specification.
 - [x] Clone labbots/bash-utility to vendor/
 - [x] Create task orchestrator file with all functions
 - [x] Create .env.example with all required variables
-- [x] Create Brewfile (19 packages)
+- [x] Create Brewfile
 - [x] Create apt.txt (16 packages)
 - [x] Create stow-common/ structure (.gitconfig.template, .vimrc, starship.toml)
 - [x] Create stow-macos/ structure (.zshrc, .zprofile)

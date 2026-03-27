@@ -65,6 +65,8 @@ macOS-specific dotfiles.
 | bin/macos-defaults | macOS system preferences script |
 | bin/setup-nvm | Node.js version manager setup |
 | bin/setup-pyenv | Python version manager setup |
+| bin/setup-dock | Dock app configuration script |
+| bin/setup-links | Home directory symlink setup |
 
 ### .zshrc Requirements
 

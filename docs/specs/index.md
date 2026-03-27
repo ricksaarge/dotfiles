@@ -10,6 +10,7 @@
 |-----------|------|---------|
 | task | [task-file.md](task-file.md) | Taskfile orchestrator |
 | macos-defaults.sh | [macos-defaults.md](macos-defaults.md) | macOS system settings |
+| setup-dock | [setup-dock.md](setup-dock.md) | Dock app configuration |
 | Brewfile | [package-management.md](package-management.md) | macOS packages |
 | apt.txt | [package-management.md](package-management.md) | Ubuntu packages |
 | Stow packages | [stow-packages.md](stow-packages.md) | Dotfile organization |
