@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+
+#------------------------------------------------------------------------------
+# Dock Configuration
+#------------------------------------------------------------------------------
+# Sets persistent Dock apps in a specific order.
+# Requires: dockutil (brew install dockutil)
+#------------------------------------------------------------------------------
+
+set -e
+
+info() { echo "[INFO] $1"; }
+error() { echo "[ERROR] $1" >&2; exit 1; }
+
+#------------------------------------------------------------------------------
+# Verify dockutil
+#------------------------------------------------------------------------------
+if ! command -v dockutil &>/dev/null; then
+	error "dockutil not found. Install with: brew install dockutil"
+fi
+
+#------------------------------------------------------------------------------
+# App List (ordered)
+#------------------------------------------------------------------------------
+apps=(
+	# Browser
+	"/Applications/Google Chrome.app"
+	# Knowledge
+	"/Applications/Obsidian.app"
+	# AI
+	"/Applications/Claude.app"
+	"/Applications/ChatGPT.app"
+	# Development
+	"/Applications/Visual Studio Code.app"
+	"/System/Applications/Utilities/Terminal.app"
+	"/Applications/Docker.app"
+	"/Applications/Termius.app"
+	# Communication
+	"/System/Applications/Messages.app"
+	"/Applications/WhatsApp.app"
+	"/Applications/Discord.app"
+	"/Applications/Slack.app"
+	# Voice
+	"/Applications/Wispr Flow.app"
+	"/Applications/Speechify — Voice AI Assistant.app"
+	"/Applications/Plaud.app"
+	# Media
+	"/Applications/Spotify.app"
+	# Security
+	"/Applications/1Password.app"
+	"/Applications/ExpressVPN.app"
+)
+
+#------------------------------------------------------------------------------
+# Validate
+#------------------------------------------------------------------------------
+missing=()
+for app in "${apps[@]}"; do
+	if [[ ! -d "$app" ]]; then
+		missing+=("$(basename "$app" .app)")
+	fi
+done
+
+if [[ ${#missing[@]} -gt 0 ]]; then
+	echo ""
+	echo "Missing apps (will be skipped):"
+	for name in "${missing[@]}"; do
+		echo "  - $name"
+	done
+	echo ""
+fi
+
+#------------------------------------------------------------------------------
+# Apply
+#------------------------------------------------------------------------------
+info "Removing all Dock items..."
+dockutil --remove all --no-restart
+
+info "Adding apps to Dock..."
+for app in "${apps[@]}"; do
+	if [[ -d "$app" ]]; then
+		dockutil --add "$app" --no-restart
+	fi
+done
+
+info "Restarting Dock..."
+killall Dock
+
+info "Done. Dock configured with ${#apps[@]} apps."

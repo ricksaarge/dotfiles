@@ -120,7 +120,7 @@ stow-macos() {
 		_error "stow-macos/ directory not found"
 	fi
 	_info "Symlinking macOS dotfiles..."
-	stow -d . -t ~ stow-macos
+	stow --adopt -d . -t ~ stow-macos
 
 	# Create platform-specific git config symlink
 	if [[ -f "$HOME/.gitconfig.local" ]]; then
@@ -135,7 +135,7 @@ stow-ubuntu() {
 		_error "stow-ubuntu/ directory not found"
 	fi
 	_info "Symlinking Ubuntu dotfiles..."
-	stow -d . -t ~ stow-ubuntu
+	stow --adopt -d . -t ~ stow-ubuntu
 
 	# Create empty platform-specific git config (can be customized)
 	_info "Creating empty ~/.gitconfig.platform..."
@@ -212,6 +212,24 @@ configure-git() {
 	_info "Main .gitconfig will import this file automatically"
 }
 
+setup-links() {
+	[[ "$(_platform)" != "mac" ]] && return
+	if [[ ! -f "$HOME/bin/setup-links" ]]; then
+		_error "setup-links script not found. Ensure dotfiles are stowed: ./task stow-macos"
+	fi
+	_info "Creating home directory symlinks..."
+	"$HOME/bin/setup-links"
+}
+
+setup-dock() {
+	[[ "$(_platform)" != "mac" ]] && return
+	if [[ ! -f "$HOME/bin/setup-dock" ]]; then
+		_error "setup-dock script not found. Ensure dotfiles are stowed: ./task stow-macos"
+	fi
+	_info "Configuring Dock..."
+	"$HOME/bin/setup-dock"
+}
+
 configure-macos() {
 	[[ "$(_platform)" != "mac" ]] && return
 	if [[ ! -f "$HOME/bin/macos-defaults" ]]; then
@@ -250,6 +268,8 @@ install() {
 	case "$(_platform)" in
 		mac)
 			stow-macos
+			setup-links
+			setup-dock
 			# configure-macos  # Commented out - run manually with: ./task configure-macos
 			;;
 		linux)
@@ -299,6 +319,8 @@ help() {
 	echo "Configuration:"
 	echo "  configure-git           Create ~/.gitconfig.local with user settings"
 	echo "  configure-macos         Apply macOS system defaults"
+	echo "  setup-links             Create home directory symlinks (macOS)"
+	echo "  setup-dock              Configure macOS Dock apps (macOS)"
 	echo ""
 	echo "Ubuntu Additional Tools (~/bin/):"
 	echo "  install-starship        Install Starship from official installer"
@@ -313,7 +335,10 @@ help() {
 #------------------------------------------------------------------------------
 # DISPATCHER
 #------------------------------------------------------------------------------
-if declare -f "$1" >/dev/null 2>&1; then
+if [[ $# -eq 0 ]]; then
+	help
+	exit 0
+elif declare -f "$1" >/dev/null 2>&1; then
 	"$1" "${@:2}"
 else
 	echo "Unknown command: $1"

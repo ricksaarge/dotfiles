@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+#------------------------------------------------------------------------------
+# Home Directory Symlinks
+#------------------------------------------------------------------------------
+# Creates convenience symlinks in ~ for frequently accessed directories.
+# Safe to run multiple times (idempotent).
+#------------------------------------------------------------------------------
+
+set -e
+
+info() { echo "[INFO] $1"; }
+
+#------------------------------------------------------------------------------
+# Link definitions: name|target
+#------------------------------------------------------------------------------
+links=(
+	"iCloud|$HOME/Library/Mobile Documents/com~apple~CloudDocs"
+	"Obsidian|$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents"
+	"Dotfiles|$HOME/Library/Mobile Documents/com~apple~CloudDocs/Code/Dotfiles"
+)
+
+#------------------------------------------------------------------------------
+# Apply
+#------------------------------------------------------------------------------
+for entry in "${links[@]}"; do
+	name="${entry%%|*}"
+	target="${entry#*|}"
+	link="$HOME/$name"
+
+	if [[ -L "$link" ]]; then
+		current=$(readlink "$link")
+		if [[ "$current" == "$target" || "$current" == "./${target#$HOME/}" ]]; then
+			info "$name -> already linked"
+			continue
+		fi
+		info "$name -> updating (was: $current)"
+		rm "$link"
+	elif [[ -e "$link" ]]; then
+		info "$name -> SKIPPED (real file/directory exists)"
+		continue
+	fi
+
+	if [[ -d "$target" ]]; then
+		ln -s "$target" "$link"
+		info "$name -> linked"
+	else
+		info "$name -> SKIPPED (target not found: $target)"
+	fi
+done
+
+info "Done."
